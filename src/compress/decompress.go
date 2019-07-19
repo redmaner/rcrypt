@@ -22,7 +22,9 @@ func (a *Archive) Decompress(dst string) error {
 
 		if f.FileInfo().IsDir() {
 			// Make Folder
-			os.MkdirAll(fpath, os.ModePerm)
+			if err := os.MkdirAll(fpath, os.ModePerm); err != nil {
+				return err
+			}
 			continue
 		}
 
@@ -42,12 +44,16 @@ func (a *Archive) Decompress(dst string) error {
 		}
 
 		_, err = io.Copy(outFile, rc)
+		if err != nil {
+			return err
+		}
 
 		// Close the file without defer to close before next iteration of loop
-		outFile.Close()
-		rc.Close()
+		if err := outFile.Close(); err != nil {
+			return err
+		}
 
-		if err != nil {
+		if err := rc.Close(); err != nil {
 			return err
 		}
 	}

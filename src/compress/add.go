@@ -16,7 +16,10 @@ func (a *Archive) Add(p string) error {
 	case err != nil:
 		return err
 	case dir.IsDir():
-		files = walkDir(p)
+		files, err = walkDir(p)
+		if err != nil {
+			return err
+		}
 	default:
 		files = append(files, p)
 	}
@@ -59,13 +62,18 @@ func (a *Archive) Add(p string) error {
 	return nil
 }
 
-func walkDir(p string) []string {
+func walkDir(p string) ([]string, error) {
 	files := make([]string, 0, 8)
-	filepath.Walk(p, func(path string, f os.FileInfo, _ error) error {
+	if err := filepath.Walk(p, func(path string, f os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 		if !f.IsDir() {
 			files = append(files, path)
 		}
 		return nil
-	})
-	return files
+	}); err != nil {
+		return files, err
+	}
+	return files, nil
 }
