@@ -4,29 +4,43 @@ import (
 	chacha "golang.org/x/crypto/chacha20poly1305"
 )
 
+// Encrypt is a method that encrypts data with password, using Coffin.Algorithm
 func (c *Coffin) Encrypt(data []byte, password []byte) ([]byte, error) {
+
+	// Switch on Coffin.Mode, and select the appropriate encryption algorithm
 	switch c.Mode {
-	case CryptCHACHA20Poly1305:
-		return c.encryptCHACHA20Poly1305(data, password)
+	case CryptCHACHA20:
+		return c.encryptCHACHA20(data, password)
 	default:
-		return c.encryptCHACHA20Poly1305(data, password)
+		return c.encryptCHACHA20(data, password)
 	}
 }
 
-func (c *Coffin) encryptCHACHA20Poly1305(data []byte, password []byte) ([]byte, error) {
+// encryptCHACHA20Poly1305 is a function that encrypts data with password using the chacha20-poly1305 encryption algorithm
+func (c *Coffin) encryptCHACHA20(data []byte, password []byte) ([]byte, error) {
 
+	// Make a 256bit key from password
 	key := makeKey(password)
+
+	// Create a new block
 	aead, err := chacha.NewX(key)
 	if err != nil {
-		return []byte{}, err
+		return emptyByte, err
 	}
 
-	nonce, err := makeNonce(chacha.NonceSizeX)
-	if err != nil {
-		return []byte{}, err
+	// Generate a nonce if specified by Coffin.Options
+	nonce := emptyByte
+	if c.Opts.WithNonce {
+		nonce, err = makeNonce(chacha.NonceSizeX)
+		if err != nil {
+			return emptyByte, err
+		}
+		c.Opts.nonce = nonce
 	}
 
+	// Seal data
 	ciphertext := aead.Seal(nil, nonce, data, nil)
 
+	// Return the data
 	return ciphertext, nil
 }

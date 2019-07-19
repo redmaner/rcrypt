@@ -5,6 +5,7 @@ import (
 	"io"
 )
 
+// makeNonce is a function that generates a random nonce
 func makeNonce(nonceSize int) ([]byte, error) {
 	nonce := make([]byte, nonceSize)
 
@@ -13,4 +14,9 @@ func makeNonce(nonceSize int) ([]byte, error) {
 	}
 
 	return nonce, nil
+}
+
+// GetNonce returns the nonce generated for use with AES or CHACHA20
+func (c *Coffin) GetNonce() []byte {
+	return c.Opts.nonce
 }
