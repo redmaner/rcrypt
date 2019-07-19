@@ -47,7 +47,7 @@ func (a *Archive) Add(p string) error {
 		// see http://golang.org/pkg/archive/zip/#pkg-constants
 		header.Method = zip.Deflate
 
-		writer, err := a.ZipWriter.CreateHeader(header)
+		writer, err := a.zipWriter.CreateHeader(header)
 		if err != nil {
 			return err
 		}

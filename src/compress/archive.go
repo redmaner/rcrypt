@@ -6,8 +6,9 @@ import (
 )
 
 type Archive struct {
-	ZipWriter *zip.Writer
-	Out       *bytes.Buffer
+	zipWriter *zip.Writer
+	zipReader *zip.Reader
+	out       *bytes.Buffer
 	isClosed  bool
 }
 
@@ -18,7 +19,19 @@ func NewArchive() *Archive {
 	zipWriter := zip.NewWriter(newZipFile)
 
 	return &Archive{
-		ZipWriter: zipWriter,
-		Out:       newZipFile,
+		zipWriter: zipWriter,
+		out:       newZipFile,
 	}
+}
+
+func LoadArchive(data []byte) (*Archive, error) {
+	zipReader, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	if err != nil {
+		return nil, err
+	}
+
+	return &Archive{
+		zipReader: zipReader,
+		isClosed:  true,
+	}, nil
 }

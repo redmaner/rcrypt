@@ -29,7 +29,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	c := crypt.NewCoffin(crypt.CryptCHACHA20Poly1305)
+	c := crypt.NewCoffin(crypt.CryptCHACHA20)
 	c.Opts.WithNonce = true
 	cryptData, err := c.Encrypt(data, []byte("This is a simple test"))
 	if err != nil {
@@ -72,4 +72,14 @@ func main() {
 		log.Fatal(err)
 	}
 	zip.Close()
+
+	arc, err := compress.LoadArchive(plaintext)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = arc.Decompress("./test-zip-out")
+	if err != nil {
+		log.Fatal(err)
+	}
 }

@@ -11,7 +11,7 @@ func (a *Archive) close() error {
 	if a.isClosed {
 		return fmt.Errorf("Archive is already compressed")
 	}
-	err := a.ZipWriter.Close()
+	err := a.zipWriter.Close()
 	if err != nil {
 		return fmt.Errorf("Error compressing archive: %v", err)
 	}
@@ -29,7 +29,7 @@ func (a *Archive) Compress() ([]byte, error) {
 	}
 
 	// Return zip archive in bytes
-	return a.Out.Bytes(), nil
+	return a.out.Bytes(), nil
 }
 
 // CompressToFile is used to compress the archive a to p file.
@@ -49,7 +49,7 @@ func (a *Archive) CompressToFile(p string) error {
 	defer zipFile.Close()
 
 	// Copy archive to file
-	_, err = io.Copy(zipFile, a.Out)
+	_, err = io.Copy(zipFile, a.out)
 	if err != nil {
 		return fmt.Errorf("Error writing to zip %s: %v", p, err)
 	}
