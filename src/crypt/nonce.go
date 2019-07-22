@@ -6,11 +6,13 @@ import (
 )
 
 // makeNonce is a function that generates a random nonce
-func makeNonce(nonceSize int) ([]byte, error) {
+func makeNonce(nonceSize int, fillRand bool) ([]byte, error) {
 	nonce := make([]byte, nonceSize)
 
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		return []byte{}, err
+	if fillRand {
+		if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+			return []byte{}, err
+		}
 	}
 
 	return nonce, nil
@@ -18,5 +20,5 @@ func makeNonce(nonceSize int) ([]byte, error) {
 
 // GetNonce returns the nonce generated for use with AES or CHACHA20
 func (c *Coffin) GetNonce() []byte {
-	return c.Opts.nonce
+	return c.Opts.Nonce
 }

@@ -20,7 +20,15 @@ func (c *Coffin) decryptCHACHA20(data []byte, password []byte) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	plaintext, err := aead.Open(nil, c.Opts.nonce, data, nil)
+	nonce, err := makeNonce(chacha.NonceSizeX, false)
+	if err != nil {
+		return []byte{}, err
+	}
+	if c.Opts.WithNonce {
+		nonce = c.Opts.Nonce
+	}
+
+	plaintext, err := aead.Open(nil, nonce, data, nil)
 	if err != nil {
 		return []byte{}, err
 	}

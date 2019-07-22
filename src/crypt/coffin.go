@@ -4,14 +4,14 @@ package crypt
 type Coffin struct {
 
 	// Mode determines the encryption / decryption method
-	Mode Algoritm
+	Mode Algorithm
 
 	// Opts are options (optional)
 	Opts Options
 }
 
 // NewCoffin returns a new coffin with Algoritm specified by alg
-func NewCoffin(alg Algoritm) *Coffin {
+func NewCoffin(alg Algorithm) *Coffin {
 	return &Coffin{
 		Mode: alg,
 	}

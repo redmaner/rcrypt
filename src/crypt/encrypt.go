@@ -29,13 +29,16 @@ func (c *Coffin) encryptCHACHA20(data []byte, password []byte) ([]byte, error) {
 	}
 
 	// Generate a nonce if specified by Coffin.Options
-	nonce := emptyByte
+	nonce, err := makeNonce(chacha.NonceSizeX, false)
+	if err != nil {
+		return emptyByte, err
+	}
 	if c.Opts.WithNonce {
-		nonce, err = makeNonce(chacha.NonceSizeX)
+		nonce, err = makeNonce(chacha.NonceSizeX, true)
 		if err != nil {
 			return emptyByte, err
 		}
-		c.Opts.nonce = nonce
+		c.Opts.Nonce = nonce
 	}
 
 	// Seal data
