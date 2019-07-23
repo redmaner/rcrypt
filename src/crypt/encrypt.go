@@ -1,6 +1,9 @@
 package crypt
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+
 	chacha "golang.org/x/crypto/chacha20poly1305"
 )
 
@@ -11,6 +14,8 @@ func (c *Coffin) Encrypt(data []byte) ([]byte, error) {
 	switch c.Mode {
 	case CryptCHACHA20:
 		return c.encryptCHACHA20(data)
+	case CryptAES256:
+		return c.encryptAES256(data)
 	default:
 		return c.encryptCHACHA20(data)
 	}
@@ -19,6 +24,7 @@ func (c *Coffin) Encrypt(data []byte) ([]byte, error) {
 // encryptCHACHA20Poly1305 is a function that encrypts data with password using the chacha20-poly1305 encryption algorithm
 func (c *Coffin) encryptCHACHA20(data []byte) ([]byte, error) {
 
+	// If password is not supplied, return error
 	if len(c.Opts.Password) == 0 {
 		return emptyByte, ErrNoPassword
 	}
@@ -43,6 +49,48 @@ func (c *Coffin) encryptCHACHA20(data []byte) ([]byte, error) {
 			return emptyByte, err
 		}
 		c.Opts.Nonce = nonce
+	}
+
+	// Seal data
+	ciphertext := aead.Seal(nil, nonce, data, nil)
+
+	// Return the data
+	return ciphertext, nil
+}
+
+// encryptAES256 is a function that encrypts data with password using the AES256-GCM encryption algorithm
+func (c *Coffin) encryptAES256(data []byte) ([]byte, error) {
+
+	// If password is not supplied, return error
+	if len(c.Opts.Password) == 0 {
+		return emptyByte, ErrNoPassword
+	}
+
+	// Make a 256bit key from password
+	key := makeKey(c.Opts.Password)
+
+	// Create a new block
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return emptyByte, err
+	}
+
+	// Generate a nonce if specified by Coffin.Options
+	nonce, err := makeNonce(12, false)
+	if err != nil {
+		return emptyByte, err
+	}
+	if c.Opts.WithNonce {
+		nonce, err = makeNonce(12, true)
+		if err != nil {
+			return emptyByte, err
+		}
+		c.Opts.Nonce = nonce
+	}
+
+	aead, err := cipher.NewGCM(block)
+	if err != nil {
+		return emptyByte, err
 	}
 
 	// Seal data
