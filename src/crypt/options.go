@@ -20,8 +20,14 @@ var emptyByte []byte
 // Options specifies options
 type Options struct {
 
-	// WithNonce enables the use of a unique nonce
-	// This option can be used with AES and CHACHA20
+	// Password is the password used for encryption and decryption. This only applies
+	// to AES256-GCM and chacha20-poly1305
+	Password []byte
+
+	// WithNonce enables the use of a unique nonce. This option can be used with AES and CHACHA20
+	// Use this option with encryption. The generated nonce can be accesed with Nonce or the GetNonce() function
 	WithNonce bool
-	Nonce     []byte
+
+	// Nonce is the nonce generated during encryption, and should be supplied for decryption
+	Nonce []byte
 }

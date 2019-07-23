@@ -114,6 +114,7 @@ func main() {
 
 		// Make a new coffin
 		cof := crypt.NewCoffin(crypt.CryptCHACHA20)
+		cof.Opts.Password = []byte(password)
 
 		// If nonce is enabled, enable nonce
 		if argWithNonce {
@@ -121,7 +122,7 @@ func main() {
 		}
 
 		// Encrypt the data
-		encryptedData, err := cof.Encrypt(data, []byte(password))
+		encryptedData, err := cof.Encrypt(data)
 		errorPanic(err, "Error when encrypting data")
 
 		// Create file on disk
@@ -196,6 +197,7 @@ func main() {
 
 		// Decrypt the data
 		cof := crypt.NewCoffin(crypt.CryptCHACHA20)
+		cof.Opts.Password = []byte(password)
 
 		// Get nonce if it is defined
 		if argNonce != "" {
@@ -211,7 +213,7 @@ func main() {
 			cof.Opts.Nonce = nonce
 		}
 
-		plaintext, err := cof.Decrypt(encryptedData, []byte(password))
+		plaintext, err := cof.Decrypt(encryptedData)
 		errorPanic(err, "Error decrypting data")
 
 		// Create a new archive
