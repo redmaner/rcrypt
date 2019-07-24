@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+// Decompress is a function to decompress the archive to dst, where dst is the
+// destination directory
 func (a *Archive) Decompress(dst string) error {
 
 	for _, f := range a.zipReader.File {

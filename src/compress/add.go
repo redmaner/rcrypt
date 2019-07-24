@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 )
 
+// Add is a function to add p into the the archive, where p is either a
+// path to a file or a path to a directory
 func (a *Archive) Add(p string) error {
 
 	files := make([]string, 0, 8)
@@ -62,6 +64,7 @@ func (a *Archive) Add(p string) error {
 	return nil
 }
 
+// walkDir is a function to walk a directory and retrieve the files in that directory
 func walkDir(p string) ([]string, error) {
 	files := make([]string, 0, 8)
 	if err := filepath.Walk(p, func(path string, f os.FileInfo, err error) error {
