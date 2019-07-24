@@ -1,8 +1,12 @@
 package crypt
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha512"
 
 	chacha "golang.org/x/crypto/chacha20poly1305"
 )
@@ -14,6 +18,8 @@ func (c *Coffin) Decrypt(data []byte) ([]byte, error) {
 		return c.decryptCHACHA20(data)
 	case CryptAES256:
 		return c.decryptAES256(data)
+	case CryptRSA:
+		return c.decryptRSA(data)
 	default:
 		return c.decryptCHACHA20(data)
 	}
@@ -73,7 +79,7 @@ func (c *Coffin) decryptAES256(data []byte) ([]byte, error) {
 	}
 
 	// Make a nonce
-	nonce, err := makeNonce(chacha.NonceSizeX, false)
+	nonce, err := makeNonce(12, false)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -96,5 +102,30 @@ func (c *Coffin) decryptAES256(data []byte) ([]byte, error) {
 		return []byte{}, err
 	}
 
+	return plaintext, nil
+}
+
+// decryptRSA is a function that decrypts data with private key using the RSA encryption algorithm
+func (c *Coffin) decryptRSA(data []byte) ([]byte, error) {
+
+	// If private key is not supplied, return error
+	if len(c.Opts.PrivKey) == 0 {
+		return emptyByte, ErrNoPrivKey
+	}
+
+	// Unmarshall the RSA public key
+	rsaKey, err := UnmarshalPrivateKey(bytes.NewBuffer(c.Opts.PrivKey))
+	if err != nil {
+		return emptyByte, err
+	}
+
+	// Encrypt the data
+	hash := sha512.New()
+	plaintext, err := rsa.DecryptOAEP(hash, rand.Reader, rsaKey, data, nil)
+	if err != nil {
+		return emptyByte, err
+	}
+
+	// Return the data
 	return plaintext, nil
 }

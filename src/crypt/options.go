@@ -1,6 +1,6 @@
 package crypt
 
-// Algoritm holds the encryption / decryption mode
+// Algorithm holds the encryption / decryption mode
 type Algorithm int
 
 const (
@@ -30,4 +30,10 @@ type Options struct {
 
 	// Nonce is the nonce generated during encryption, and should be supplied for decryption
 	Nonce []byte
+
+	// PrivKey is the private key in PEM encoded bytes. Used for decryption with RSA algorithm
+	PrivKey []byte
+
+	// PubKey is the public key in PEM encoded bytes. Used for encryption with RSA algorithm
+	PubKey []byte
 }

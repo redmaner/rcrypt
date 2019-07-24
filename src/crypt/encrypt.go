@@ -1,8 +1,12 @@
 package crypt
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha512"
 
 	chacha "golang.org/x/crypto/chacha20poly1305"
 )
@@ -16,6 +20,8 @@ func (c *Coffin) Encrypt(data []byte) ([]byte, error) {
 		return c.encryptCHACHA20(data)
 	case CryptAES256:
 		return c.encryptAES256(data)
+	case CryptRSA:
+		return c.encryptRSA(data)
 	default:
 		return c.encryptCHACHA20(data)
 	}
@@ -95,6 +101,31 @@ func (c *Coffin) encryptAES256(data []byte) ([]byte, error) {
 
 	// Seal data
 	ciphertext := aead.Seal(nil, nonce, data, nil)
+
+	// Return the data
+	return ciphertext, nil
+}
+
+// encryptRSA is a function that encrypts data with public key using the RSA encryption algorithm
+func (c *Coffin) encryptRSA(data []byte) ([]byte, error) {
+
+	// If public key is not supplied, return error
+	if len(c.Opts.PubKey) == 0 {
+		return emptyByte, ErrNoPubKey
+	}
+
+	// Unmarshall the RSA public key
+	rsaKey, err := UnmarshalPublicKey(bytes.NewBuffer(c.Opts.PubKey))
+	if err != nil {
+		return emptyByte, err
+	}
+
+	// Encrypt the data
+	hash := sha512.New()
+	ciphertext, err := rsa.EncryptOAEP(hash, rand.Reader, rsaKey, data, nil)
+	if err != nil {
+		return emptyByte, err
+	}
 
 	// Return the data
 	return ciphertext, nil

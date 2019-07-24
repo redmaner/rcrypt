@@ -34,7 +34,7 @@ func TestCHACHA20(t *testing.T) {
 		t.Fail()
 	}
 
-	fmt.Printf("Tests for chacha20 passed succesfully")
+	fmt.Printf("Tests for chacha20 passed succesfully\n")
 }
 
 func TestAES256(t *testing.T) {
@@ -61,5 +61,40 @@ func TestAES256(t *testing.T) {
 		t.Fail()
 	}
 
-	fmt.Printf("Tests for aes256 passed succesfully")
+	fmt.Printf("Tests for aes256 passed succesfully\n")
+}
+
+func TestRSA(t *testing.T) {
+
+	priv, pub, err := NewRSAKeyPair(4096)
+	if err != nil {
+		t.Fail()
+	}
+
+	pubkey, err := MarshalPublicKey(pub)
+	if err != nil {
+		t.Fail()
+	}
+
+	privkey := MarshalPrivateKey(priv)
+
+	cof := NewCoffin(CryptRSA)
+	cof.Opts.PrivKey = privkey
+	cof.Opts.PubKey = pubkey
+
+	encryptedData, err := cof.Encrypt([]byte(testData))
+	if err != nil {
+		t.Fail()
+	}
+
+	plaintext, err := cof.Decrypt(encryptedData)
+	if err != nil {
+		t.Fail()
+	}
+
+	if string(plaintext) != testData {
+		t.Fail()
+	}
+
+	fmt.Printf("Tests for RSA passed succesfully\n")
 }
