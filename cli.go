@@ -20,6 +20,8 @@ var (
 	cmdOpen = flag.NewFlagSet("open", flag.ExitOnError)
 
 	// General arguments
+	argCHACHA   bool
+	argAES      bool
 	argOut      string
 	argPassword string
 	argHelp     bool
@@ -34,6 +36,8 @@ var (
 func init() {
 
 	// Init seal options
+	cmdSeal.BoolVar(&argCHACHA, "chacha20", true, "Use the CHACHA20-Poly1305 algorithm")
+	cmdSeal.BoolVar(&argAES, "aes256", false, "Use the AES256-GCM algorithm")
 	cmdSeal.BoolVar(&argHelp, "help", false, "Show help")                                       // Long argument
 	cmdSeal.BoolVar(&argHelp, "h", false, "Show help")                                          // Short argument
 	cmdSeal.StringVar(&argOut, "out", "./", "Destination of the output")                        // Long argument
@@ -44,6 +48,8 @@ func init() {
 	cmdSeal.StringVar(&argPassword, "p", "", "Password used for encryption")                    // short argument
 
 	// Init open options
+	cmdOpen.BoolVar(&argCHACHA, "chacha20", true, "Use the CHACHA20-Poly1305 algorithm")
+	cmdOpen.BoolVar(&argAES, "aes256", false, "Use the AES256-GCM algorithm")
 	cmdOpen.BoolVar(&argHelp, "h", false, "Show help")                            // Short argument
 	cmdOpen.BoolVar(&argHelp, "help", false, "Show help")                         // Long argument
 	cmdOpen.StringVar(&argOut, "out", "", "Destination of the output")            // Long argument
@@ -54,6 +60,9 @@ func init() {
 	cmdOpen.StringVar(&argPassword, "p", "", "Password used for decryption")      // short argument
 }
 
+/*************************
+* CLI Interface
+**************************/
 func main() {
 
 	// Assign arguments
@@ -113,12 +122,25 @@ func main() {
 		errorPanic(err, "Error when compressing files")
 
 		// Make a new coffin
-		cof := crypt.NewCoffin(crypt.CryptCHACHA20)
-		cof.Opts.Password = []byte(password)
+		var cof *crypt.Coffin
 
-		// If nonce is enabled, enable nonce
-		if argWithNonce {
-			cof.Opts.WithNonce = true
+		// Encrypt according to selected algorith. The default algorithm is
+		// CHACHA20-poly1305
+		switch {
+		case argAES:
+			cof = crypt.NewCoffin(crypt.CryptAES256)
+		default:
+			cof = crypt.NewCoffin(crypt.CryptCHACHA20)
+		}
+
+		// Do specific configurations for AES and CHACHA
+		if argAES || argCHACHA {
+			cof.Opts.Password = []byte(password)
+
+			// If nonce is enabled, enable nonce
+			if argWithNonce {
+				cof.Opts.WithNonce = true
+			}
 		}
 
 		// Encrypt the data
@@ -195,22 +217,34 @@ func main() {
 		encryptedData, err := ioutil.ReadAll(file)
 		errorPanic(err, fmt.Sprintf("Error reading %s", fileArgs[0]))
 
-		// Decrypt the data
-		cof := crypt.NewCoffin(crypt.CryptCHACHA20)
-		cof.Opts.Password = []byte(password)
+		// Decrypt the data acoording to selecte algorithm. The default algorithm
+		// is CHACHA20-poly1305
+		var cof *crypt.Coffin
 
-		// Get nonce if it is defined
-		if argNonce != "" {
-			nonceFile, err := os.Open(argNonce)
-			errorPanic(err, fmt.Sprintf("Error opening %s", argNonce))
+		switch {
+		case argAES:
+			cof = crypt.NewCoffin(crypt.CryptAES256)
+		default:
+			cof = crypt.NewCoffin(crypt.CryptCHACHA20)
+		}
 
-			// Read data
-			nonce, err := ioutil.ReadAll(nonceFile)
-			errorPanic(err, fmt.Sprintf("Error reading %s", argNonce))
+		// Do specific configurations for AES256 and CHACHA20
+		if argAES || argCHACHA {
+			cof.Opts.Password = []byte(password)
 
-			// Assign nonce to coffin
-			cof.Opts.WithNonce = true
-			cof.Opts.Nonce = nonce
+			// Get nonce if it is defined
+			if argNonce != "" {
+				nonceFile, err := os.Open(argNonce)
+				errorPanic(err, fmt.Sprintf("Error opening %s", argNonce))
+
+				// Read data
+				nonce, err := ioutil.ReadAll(nonceFile)
+				errorPanic(err, fmt.Sprintf("Error reading %s", argNonce))
+
+				// Assign nonce to coffin
+				cof.Opts.WithNonce = true
+				cof.Opts.Nonce = nonce
+			}
 		}
 
 		plaintext, err := cof.Decrypt(encryptedData)
