@@ -54,6 +54,10 @@ func UnmarshalPrivateKey(keyFile io.Reader) (*rsa.PrivateKey, error) {
 	}
 
 	block, _ := pem.Decode(priv)
+	if block == nil {
+		return nil, ErrInvalidPrivKey
+	}
+
 	enc := x509.IsEncryptedPEMBlock(block)
 	b := block.Bytes
 	if enc {
@@ -78,6 +82,10 @@ func UnmarshalPublicKey(keyFile io.Reader) (*rsa.PublicKey, error) {
 	}
 
 	block, _ := pem.Decode(pub)
+	if block == nil {
+		return nil, ErrInvalidPubKey
+	}
+
 	enc := x509.IsEncryptedPEMBlock(block)
 	b := block.Bytes
 	if enc {

@@ -15,4 +15,10 @@ var (
 
 	//ErrNoPrivKey is returned when no private key was supplied
 	ErrNoPrivKey = errors.New("private key not supplied")
+
+	//ErrInvalidPubKey is returned when a public key is of an invalid format
+	ErrInvalidPubKey = errors.New("invalid public key")
+
+	//ErrInvalidPrivKey is returned when a privae key is of an invalid format
+	ErrInvalidPrivKey = errors.New("invalid private key")
 )
